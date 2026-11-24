@@ -1,0 +1,54 @@
+/* DOUGLAS Brandbook-inspired design tokens */
+:root {
+  /* Brand */
+  --mint: #9bdcd2;
+  --mint-medium: #c3eae4;
+  --mint-light: #e6f6f4;
+  --mint-deep: #286b62;      /* accessible text-on-light accent derived from mint */
+  --n90: #322b29;
+  --n70: #5e534e;
+  --n50: #897d78;
+  --n10: #e6e2e0;
+  --white: #ffffff;
+  --black: #000000;
+
+  /* Surfaces */
+  --bg: #faf8f6;             /* warm off-white */
+  --surface: #ffffff;
+  --stone: #f3efec;
+  --line: #e6e2e0;
+  --line-strong: #d3ccc8;
+  --ink: var(--n90);
+  --ink-soft: var(--n70);
+  --ink-mute: #6f6560;       /* AA on --bg */
+
+  /* Type */
+  --font: 'Avenir Next', 'Avenir', 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-display: clamp(2.6rem, 1.4rem + 3.6vw, 4.5rem);
+  --fs-h1: clamp(2.4rem, 1.5rem + 2.8vw, 4rem);
+  --fs-h2: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+  --fs-h3: clamp(1.3rem, 1.1rem + 0.6vw, 1.6rem);
+  --fs-h4: 1.2rem;
+  --fs-body: 1.0625rem;
+  --fs-small: 0.875rem;
+  --fs-eyebrow: 0.75rem;
+
+  /* Layout */
+  --container: 1312px;
+  --gutter: clamp(16px, 4vw, 64px);
+  --radius-s: 8px;
+  --radius: 16px;
+  --radius-l: 28px;
+  --header-h: 76px;
+
+  /* Elevation */
+  --shadow-s: 0 1px 2px rgb(50 43 41 / 6%), 0 2px 8px rgb(50 43 41 / 5%);
+  --shadow-m: 0 8px 28px rgb(50 43 41 / 9%);
+  --shadow-l: 0 24px 60px rgb(50 43 41 / 16%);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 180ms;
+  --t: 280ms;
+  --t-slow: 700ms;
+}
