@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PRIVACY_NOTE, PROMPT_CATEGORIES, PROMPTS, type Prompt } from '../content/prompts';
 import { LINKS } from '../content/config';
-import type { PhaseId, Role } from '../content/types';
+import { isVisibleFor, type PhaseId } from '../content/types';
 import { useApp } from '../state/AppContext';
 import { copyText } from '../lib/clipboard';
 import { Icon } from '../components/Icon';
@@ -11,7 +11,7 @@ import { LinkList, PageHero, Section } from '../components/ui';
 const PHASE_LABEL: Record<PhaseId, string> = { 'objective-setting': 'Objective Setting', 'mid-year': 'Mid-Year', 'year-end': 'Year-End' };
 const ROLE_LABEL = { both: 'Employee · Manager', employee: 'Employee', manager: 'Manager' };
 
-function PromptCard({ p, index, recommended, focus }: { p: Prompt; index: number; recommended: boolean; focus: boolean }) {
+function PromptCard({ p, index, focus }: { p: Prompt; index: number; focus: boolean }) {
   const [open, setOpen] = useState(focus);
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -32,7 +32,6 @@ function PromptCard({ p, index, recommended, focus }: { p: Prompt; index: number
     <article ref={ref} className={`prompt-card anim-in ${open ? 'is-open' : ''} ${focus ? 'is-target' : ''}`} style={{ ['--d' as string]: `${index * 60}ms` }}>
       <div className="prompt-card__top">
         <span className="prompt-card__n">P{index + 1}</span>
-        {recommended && <span className="tag tag--mint"><Icon name="sparkle" size={12} /> For your view</span>}
       </div>
       <h2 className="h4">{p.title}</h2>
       <p className="muted">{p.description}</p>
@@ -66,7 +65,6 @@ export function PromptLibrary() {
   const { role } = useApp();
   const [params, setParams] = useSearchParams();
   const phase = params.get('phase') ?? 'any';
-  const roleF = params.get('role') ?? 'any';
   const category = params.get('category') ?? 'any';
 
   const set = (k: string, v: string) => {
@@ -78,12 +76,11 @@ export function PromptLibrary() {
   const results = useMemo(
     () => PROMPTS.filter((p) =>
       (phase === 'any' || p.phase === phase) &&
-      (roleF === 'any' || p.role === roleF || p.role === 'both') &&
+      isVisibleFor(p.role, role) &&
       (category === 'any' || p.category === category)),
-    [phase, roleF, category],
+    [phase, role, category],
   );
-  const isRecommended = (p: Prompt) => p.role === role || p.role === 'both';
-  const filtersOn = phase !== 'any' || roleF !== 'any' || category !== 'any';
+  const filtersOn = phase !== 'any' || category !== 'any';
 
   return (
     <>
@@ -100,16 +97,6 @@ export function PromptLibrary() {
 
       <Section className="prompts">
         <div className="filter-bar" role="group" aria-label="Filter prompts">
-          <div className="filter-bar__group">
-            <span className="filters__label" id="fl-role">Role</span>
-            <div className="seg seg--sm" role="radiogroup" aria-labelledby="fl-role">
-              {(['any', 'employee', 'manager'] as ('any' | Role)[]).map((r) => (
-                <button key={r} type="button" role="radio" aria-checked={roleF === r} className={roleF === r ? 'is-active' : ''} onClick={() => set('role', r)}>
-                  {r === 'any' ? 'All' : r === 'manager' ? 'Manager' : 'Employee'}
-                </button>
-              ))}
-            </div>
-          </div>
           <div className="filter-bar__group">
             <span className="filters__label" id="fl-phase">Dialogue phase</span>
             <div className="seg seg--sm" role="radiogroup" aria-labelledby="fl-phase">
@@ -130,28 +117,28 @@ export function PromptLibrary() {
           {filtersOn && <button type="button" className="btn btn--ghost btn--sm" onClick={() => setParams(new URLSearchParams(), { replace: true })}><Icon name="reset" size={16} /> Reset</button>}
         </div>
 
-        <p className="kc__count" role="status" aria-live="polite">{results.length} of {PROMPTS.length} prompts</p>
+        <p className="kc__count" role="status" aria-live="polite">{results.length} of {PROMPTS.filter((p) => isVisibleFor(p.role, role)).length} prompts</p>
 
         {results.length === 0 ? (
           <div className="empty">
             <span className="empty__icon"><Icon name="sparkle" size={28} /></span>
             <h2 className="h3">No prompt matches this combination</h2>
-            <p className="muted">Try another phase or role — or reset the filters to see all six prompts.</p>
+            <p className="muted">Try another phase or category — or reset the filters to see all prompts for your view.</p>
             <button type="button" className="btn btn--dark" onClick={() => setParams(new URLSearchParams(), { replace: true })}>Show all prompts</button>
           </div>
         ) : (
-          <div className="prompt-grid" key={`${phase}${roleF}${category}`}>
-            {results.map((p) => <PromptCard key={p.id} p={p} index={PROMPTS.indexOf(p)} recommended={isRecommended(p)} focus={params.get('prompt') === p.id} />)}
+          <div className="prompt-grid" key={`${phase}${role}${category}`}>
+            {results.map((p) => <PromptCard key={p.id} p={p} index={PROMPTS.indexOf(p)} focus={params.get('prompt') === p.id} />)}
           </div>
         )}
 
         <div className="how" data-reveal>
           <p className="eyebrow">How to use</p>
           <ol className="how__steps">
-            <li><span>1</span>Choose a prompt and click <strong>Copy Prompt</strong>.</li>
-            <li><span>2</span>Open {LINKS.microsoftCopilot.url ? <a href={LINKS.microsoftCopilot.url} target="_blank" rel="noreferrer">Microsoft Copilot</a> : 'the DOUGLAS-approved Microsoft Copilot environment'} and paste it.</li>
-            <li><span>3</span>Add fictional or general context only — never personal employee data.</li>
-            <li><span>4</span>Use the result as inspiration; official actions happen in SAP SuccessFactors.</li>
+            <li><span>1</span><p>Choose a prompt and click <strong>Copy Prompt</strong>.</p></li>
+            <li><span>2</span><p>Open {LINKS.microsoftCopilot.url ? <a href={LINKS.microsoftCopilot.url} target="_blank" rel="noreferrer">Microsoft Copilot</a> : 'the DOUGLAS-approved Microsoft Copilot environment'} and paste it.</p></li>
+            <li><span>3</span><p>Add fictional or general context only — never personal employee data.</p></li>
+            <li><span>4</span><p>Use the result as inspiration; official actions happen in SAP SuccessFactors.</p></li>
           </ol>
         </div>
       </Section>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { BREADCRUMBS } from '../content/navigation';
 import { LINKS, PHASE_WINDOWS, SAP_FORM_LOCATION, SUPPORT } from '../content/config';
 import type { ChecklistItem, LinkRef, PhaseId, Role } from '../content/types';
@@ -236,7 +237,9 @@ export function Drawer({ open, onClose, label, children, wide = false }: { open:
     return () => document.body.classList.remove('no-scroll');
   }, [open]);
   if (!open) return null;
-  return (
+  // Portal to <body> so the drawer escapes <main>'s stacking context (page-transition animation)
+  // and always sits above the sticky header.
+  return createPortal(
     <div className="drawer" role="presentation">
       <div className="drawer__backdrop" onClick={close} />
       <div className={`drawer__panel ${wide ? 'drawer__panel--wide' : ''}`} role="dialog" aria-modal="true" aria-label={label} ref={ref}>
@@ -245,7 +248,8 @@ export function Drawer({ open, onClose, label, children, wide = false }: { open:
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -3,6 +3,7 @@ import { PROMPTS } from '../content/prompts';
 import { NUGGETS } from '../content/nuggets';
 import { COMPETENCIES } from '../content/competencies';
 import { blockText } from './text';
+import { isVisibleFor, type Role, type RoleTag } from '../content/types';
 
 export type SearchGroup = 'Pages' | 'FAQs & guides' | 'Copilot prompts' | 'Learning Nuggets' | 'Competencies';
 
@@ -17,6 +18,8 @@ export interface SearchEntry {
   keywords: string;
   /** Full text, searched with lower weight. */
   body: string;
+  /** Which role view may see this entry (default: everyone). */
+  role?: RoleTag;
 }
 
 /** Pages and key sections — so a search can jump straight to the right place. */
@@ -33,7 +36,7 @@ const PAGES: Omit<SearchEntry, 'group' | 'body'>[] = [
   { id: 'p-ye-time', title: 'Year-End four steps', summary: 'Year-End · Self-evaluation, manager evaluation, dialogue, completion', to: '/year-end#timeline', keywords: 'self evaluation self-assessment manager evaluation completion timeline deadline' },
   { id: 'p-ye-exc', title: 'Special situations', summary: 'Year-End · New starters, role change, new manager, exits', to: '/year-end#exceptions', keywords: 'new starter role change new manager exit leaving exceptions' },
   { id: 'p-kc', title: 'Knowledge Center', summary: 'FAQs, guides, checklists and SAP help', to: '/knowledge-center', keywords: 'faq help questions answers wissen' },
-  { id: 'p-ai', title: 'AI Prompt Library', summary: 'Six Microsoft Copilot prompts', to: '/ai-prompts', keywords: 'ai copilot prompts ki' },
+  { id: 'p-ai', title: 'AI Prompt Library', summary: 'Curated Microsoft Copilot prompts', to: '/ai-prompts', keywords: 'ai copilot prompts ki' },
   { id: 'p-ln', title: 'Learning Nuggets', summary: 'Three lessons in five minutes or less', to: '/learning-nuggets', keywords: 'learning training lernen nuggets microlearning' },
   { id: 'p-cg', title: 'Competency & Goal Guide', summary: 'Objectives, seven competencies and ratings', to: '/competency-goal-guide', keywords: 'competencies kompetenzen goals guide' },
   { id: 'p-cg-rating', title: 'Rating & evaluation framework', summary: 'Competency & Goal Guide · Weighting and scale', to: '/competency-goal-guide#rating', keywords: 'rating weighting 40 60 percent scale evaluation bewertung not fulfilled partially exceeded' },
@@ -52,6 +55,7 @@ export function getIndex(): SearchEntry[] {
       summary: `${k.type} · ${k.answer}`,
       to: `/knowledge-center?item=${k.id}`,
       keywords: k.type,
+      role: k.role,
       body: `${k.answer} ${blockText(k.body ?? [])}`,
     })),
     ...PROMPTS.map((p) => ({
@@ -62,6 +66,7 @@ export function getIndex(): SearchEntry[] {
       to: `/ai-prompts?prompt=${p.id}`,
       keywords: `${p.category} ${p.role} ${p.phase} copilot prompt ai`,
       body: p.text,
+      role: p.role,
     })),
     ...NUGGETS.map((n) => ({
       id: `n-${n.id}`,
@@ -88,11 +93,12 @@ export function getIndex(): SearchEntry[] {
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 /** Every word must match somewhere; title and keyword hits rank higher. */
-export function search(query: string, limit = 24): SearchEntry[] {
+export function search(query: string, role: Role, limit = 24): SearchEntry[] {
   const words = norm(query).split(/[^a-z0-9%-]+/).filter((w) => w.length > 1 || /\d/.test(w));
   if (!words.length) return [];
   const scored: { e: SearchEntry; score: number }[] = [];
   for (const e of getIndex()) {
+    if (e.role && !isVisibleFor(e.role, role)) continue;
     const title = norm(e.title), kw = norm(`${e.keywords} ${e.summary}`), body = norm(e.body);
     let score = 0;
     let all = true;

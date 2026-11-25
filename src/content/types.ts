@@ -20,3 +20,6 @@ export interface ChecklistItem {
   text: string;
   hint?: string;
 }
+
+/** True if content tagged with `tag` should be shown in the given role view. */
+export const isVisibleFor = (tag: RoleTag, role: Role) => tag === 'both' || tag === role;

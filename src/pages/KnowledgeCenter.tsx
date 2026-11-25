@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CONTENT_TYPES, KNOWLEDGE, type ContentType, type KnowledgeItem } from '../content/knowledge';
-import type { PhaseTag, RoleTag } from '../content/types';
+import { isVisibleFor, type PhaseTag, type RoleTag } from '../content/types';
 import { useApp } from '../state/AppContext';
 import { Icon } from '../components/Icon';
 import { Blocks } from '../components/Blocks';
@@ -28,7 +28,6 @@ export function KnowledgeCenter() {
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') ?? '');
   const phase = (params.get('phase') as PhaseTag | null) ?? 'all';
-  const roleFilter = (params.get('role') as RoleTag | 'any' | null) ?? 'any';
   const type = (params.get('type') as ContentType | 'any' | null) ?? 'any';
   const itemParam = params.get('item');
   const [openFaq, setOpenFaq] = useState<string | null>(null);
@@ -46,27 +45,32 @@ export function KnowledgeCenter() {
   useEffect(() => {
     if (!itemParam) return;
     const k = KNOWLEDGE.find((x) => x.id === itemParam);
-    if (!k) return;
+    if (!k || !isVisibleFor(k.role, role)) return;
     if (k.type === 'FAQ') {
       setOpenFaq(k.id);
       window.setTimeout(() => document.getElementById(`kc-${k.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
     } else setArticle(k);
-  }, [itemParam]);
+  }, [itemParam, role]);
+
+  // Close an open article/FAQ if the view switches to a role that may not see it.
+  useEffect(() => {
+    if (article && !isVisibleFor(article.role, role)) setArticle(null);
+  }, [role, article]);
 
   const results = useMemo(() => {
     const q = query.toLowerCase().trim();
     return KNOWLEDGE.filter((k) => {
       if (phase !== 'all' && k.phase !== phase && k.phase !== 'all') return false;
-      if (roleFilter !== 'any' && k.role !== roleFilter && k.role !== 'both') return false;
+      if (!isVisibleFor(k.role, role)) return false;
       if (type !== 'any' && k.type !== type) return false;
       if (q && !q.split(/\s+/).every((w) => searchable(k).includes(w))) return false;
       return true;
     });
-  }, [query, phase, roleFilter, type]);
+  }, [query, phase, role, type]);
 
   const faqs = results.filter((r) => r.type === 'FAQ');
   const articles = results.filter((r) => r.type !== 'FAQ');
-  const activeFilters = (phase !== 'all' ? 1 : 0) + (roleFilter !== 'any' ? 1 : 0) + (type !== 'any' ? 1 : 0) + (query ? 1 : 0);
+  const activeFilters = (phase !== 'all' ? 1 : 0) + (type !== 'any' ? 1 : 0) + (query ? 1 : 0);
   const reset = () => { setQuery(''); setParams(new URLSearchParams(), { replace: true }); };
 
   return (
@@ -101,14 +105,6 @@ export function KnowledgeCenter() {
                 {(['all', 'objective-setting', 'mid-year', 'year-end'] as PhaseTag[]).map((p) => <option key={p} value={p}>{PHASE_LABEL[p]}</option>)}
               </select>
             </div>
-            <div className="filters__group">
-              <label htmlFor="f-role" className="filters__label">Target role</label>
-              <select id="f-role" value={roleFilter} onChange={(e) => setParam('role', e.target.value)}>
-                <option value="any">Any role</option>
-                <option value="employee">Employees</option>
-                <option value="manager">Managers</option>
-              </select>
-            </div>
             <fieldset className="filters__group">
               <legend className="filters__label">Content type</legend>
               <div className="chips">
@@ -120,11 +116,6 @@ export function KnowledgeCenter() {
             </fieldset>
             {activeFilters > 0 && (
               <button type="button" className="btn btn--ghost btn--sm" onClick={reset}><Icon name="reset" size={16} /> Reset filters</button>
-            )}
-            {role === 'manager' && roleFilter === 'any' && (
-              <button type="button" className="filters__hint" onClick={() => setParam('role', 'manager')}>
-                <Icon name="users" size={16} /> Show manager-relevant content
-              </button>
             )}
           </aside>
 

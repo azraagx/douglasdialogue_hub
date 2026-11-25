@@ -13,7 +13,7 @@ import { Section, SapLinkCard, SupportContact } from '../components/ui';
 
 const MODULES: { to: string; title: string; text: string; icon: IconName; eyebrow: string; image?: string; alt?: string }[] = [
   { to: '/knowledge-center', eyebrow: 'Module 02', title: 'Knowledge Center', text: 'Clear answers, process guides, checklists and SAP help — searchable in seconds.', icon: 'book', image: 'img/office-glass.jpg', alt: 'DOUGLAS colleagues working in a bright, glass-walled office' },
-  { to: '/ai-prompts', eyebrow: 'Module 03', title: 'AI Prompt Library', text: 'Six curated Microsoft Copilot prompts to prepare, reflect and communicate.', icon: 'sparkle' },
+  { to: '/ai-prompts', eyebrow: 'Module 03', title: 'AI Prompt Library', text: 'Curated Microsoft Copilot prompts to prepare, reflect and communicate.', icon: 'sparkle' },
   { to: '/learning-nuggets', eyebrow: 'Module 04', title: 'Learning Nuggets', text: 'Three short lessons — five minutes or less — on objectives, preparation and feedback.', icon: 'clock' },
   { to: '/competency-goal-guide', eyebrow: 'Module 05', title: 'Competency & Goal Guide', text: 'Objective types, seven competencies and how the evaluation is structured.', icon: 'target', image: 'img/team-trio.jpg', alt: 'Three DOUGLAS colleagues standing together and smiling' },
 ];
@@ -22,7 +22,7 @@ const MANAGER_SHORTCUTS = [
   { to: '/mid-year#prepare', label: 'Prepare for a team dialogue' },
   { to: '/competency-goal-guide#leadership', label: 'Review competencies' },
   { to: '/competency-goal-guide#rating', label: 'Understand ratings' },
-  { to: '/ai-prompts?role=manager', label: 'Manager prompts' },
+  { to: '/ai-prompts', label: 'Manager prompts' },
 ];
 
 function Hero() {

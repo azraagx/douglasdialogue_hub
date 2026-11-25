@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { search, POPULAR_SEARCHES, type SearchEntry, type SearchGroup } from '../lib/searchIndex';
 import { NUGGETS } from '../content/nuggets';
 import { useEscape, useFocusTrap } from '../lib/hooks';
+import { useApp } from '../state/AppContext';
 import { media } from '../lib/base';
 import { Icon } from './Icon';
 import { SmartLink } from './SmartLink';
@@ -43,7 +44,8 @@ export function SearchPanel({ open, onClose }: { open: boolean; onClose: () => v
     if (open) { setQ(''); setActive(0); }
   }, [open]);
 
-  const results = useMemo(() => search(q), [q]);
+  const { role } = useApp();
+  const results = useMemo(() => search(q, role), [q, role]);
   const grouped = useMemo(
     // Groups appear in order of their best-ranked hit, so the most relevant result is always on top.
     () => GROUP_ORDER.filter((g) => results.some((r) => r.group === g))

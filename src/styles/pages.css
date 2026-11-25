@@ -234,7 +234,7 @@
 .how { margin-top: 48px; padding: clamp(28px, 4vw, 44px); border-radius: 0; background: var(--n90); color: #fff; }
 .how .eyebrow { color: var(--mint); }
 .how__steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
-.how__steps li { display: grid; gap: 12px; color: rgb(255 255 255 / 82%); }
+.how__steps li { display: grid; gap: 12px; align-content: start; color: rgb(255 255 255 / 82%); }
 .how__steps span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 0; background: var(--mint); color: var(--n90); font-weight: 700; }
 .how__steps strong { color: #fff; }
 .how a { color: var(--mint); text-decoration: underline; }
